@@ -56,6 +56,9 @@ public:
     void track( const QList<QPair<QString, QString> >& parameters );
     void track( const QUrlQuery& data );
 
+    void sendScreenView(const QString& appName, const QString& screenName);
+    void sendEvent(const QString& eventCategory, const QString& eventAction, const QString& eventLabel, const int& eventValue);
+
     void setTrackingID( const QString& trackingID );
     QString trackingID() const;
 

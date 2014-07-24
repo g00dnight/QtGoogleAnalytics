@@ -80,7 +80,7 @@ namespace QtGoogleAnalytics
 
         QList<QString> validHitTypes;
         validHitTypes << "pageview" << "appview" << "event" << "transaction";
-        validHitTypes << "item" << "social" << "exception" << "timing";
+        validHitTypes << "screenview" << "item" << "social" << "exception" << "timing";
 
         QMap<QString, QStringList> requiredPerHitType;
         requiredPerHitType.insert( "transaction", QStringList() << "ti" );
@@ -92,7 +92,7 @@ namespace QtGoogleAnalytics
         bool allParametersOfCorrectType = true;
 
         QHash<QString, QString> params;
-        QListIterator<QPair<QString, QString>> iter( parameters );
+        QListIterator<QPair<QString, QString> > iter( parameters );
         while ( iter.hasNext() )
         {
             auto param = iter.next();
@@ -165,16 +165,12 @@ QNetworkAccessManager* Tracker::networkAccessManager() const
 
 void Tracker::track( const Tracker::ParameterList& parameters )
 {
-    if ( ! isValidHit( parameters ) )
-    {
-        return;
-    }
-
+    if (!isValidHit(parameters)) return;
     QUrlQuery query;
-    query.setQueryItems( parameters );
-    query.addQueryItem( QString( "v" ), ProtocolVersion );
-    query.addQueryItem( QString( "tid" ), m_trackingID );
-    query.addQueryItem( QString( "cid" ), m_clientID );
+    query.setQueryItems(parameters);
+    query.addQueryItem(QString("v"), ProtocolVersion);
+    query.addQueryItem(QString("tid"), m_trackingID);
+    query.addQueryItem(QString("cid"), m_clientID);
     track( query );
 }
 
@@ -207,7 +203,6 @@ void Tracker::track( const QUrlQuery& query )
 
         url.setQuery( q );
         req.setUrl( url );
-
         int size = url.toString( QUrl::FullyEncoded ).size();
         if ( size > 2000 )
         {
@@ -216,6 +211,26 @@ void Tracker::track( const QUrlQuery& query )
 
         m_replies.insert( m_nam->get( req ) );
     }
+}
+
+void Tracker::sendScreenView(const QString& appName, const QString& screenName)
+{
+    QList<QPair<QString, QString> > params;
+    params << qMakePair(QString("t"), QString("screenview"));
+    params << qMakePair(QString("an"), appName);
+    params << qMakePair(QString("cd"), screenName);
+    track(params);
+}
+
+void Tracker::sendEvent(const QString& eventCategory, const QString& eventAction, const QString& eventLabel, const int& eventValue)
+{
+    QList<QPair<QString, QString> > params;
+    params << qMakePair(QString("t"), QString("event"));
+    params << qMakePair(QString("ec"), eventCategory);
+    params << qMakePair(QString("ea"), eventAction);
+    params << qMakePair(QString("el"), eventLabel);
+    params << qMakePair(QString("ev"), QString::number(eventValue));
+    track(params);
 }
 
 void Tracker::connectSignals()
